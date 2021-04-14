@@ -155,6 +155,23 @@ namespace EconomyBot.Economy
             //productStock.Select(t => t.Value * products[t.Key]).Sum();
             double pos = productStock.Select(t => t.Value * products[t.Key]).Sum();
             pos *= popularityToModifier(popularity);
+
+            double percentToDividend = 0;
+            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID)))
+            {
+                if (i.ID == orgOwner)
+                {
+                    //Profits that would normally go to owner stay in the company
+                    continue;
+                }
+                else
+                {
+                    Stock s = i.ownedStock.Find(s => s.companyBought == this.ID);
+                    percentToDividend += sharesToPercentage(s.amount);
+                }
+            }
+            pos *= 1 - percentToDividend;
+
             double[] output = new double[4];
             output[0] = pos * 0.5; //Worst case
             output[1] = pos * 1; //Unpog
@@ -187,6 +204,25 @@ namespace EconomyBot.Economy
                 output += products[valuePair.Key] * sold;
             }
 
+            //Dividends
+            double totalDividendCost = 0;
+            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID))) {
+                if (i.ID == orgOwner)
+                {
+                    //Profits that would normally go to owner stay in the company
+                    continue;
+                }
+                else {
+                    Stock s = i.ownedStock.Find(s => s.companyBought == this.ID);
+                    double dividend = output * sharesToPercentage(s.amount);
+                    totalDividendCost += dividend;
+                    //Stock stuff goes directly to bank
+                    i.balance += dividend;
+                    CoreClass.economy.updateUser(i);
+                }
+            }
+            output -= totalDividendCost;
+
             //Update popularity
             if (astroturfs < 1)
             {
@@ -216,9 +252,9 @@ namespace EconomyBot.Economy
         /// Converts shares to a percentage ownership of a company
         /// </summary>
         /// <param name="shares">The amount of shares to convert to a percentage</param>
-        /// <returns>The percentage of a company represented by the given amount of shares</returns>
+        /// <returns>The percentage of a company represented by the given amount of shares, from 0.0 to 1.0</returns>
         public static double sharesToPercentage(double shares) {
-            return (shares * 0.001)/100;           
+            return shares / SHARES_PER_COMPANY;         
         }
         /// <summary>
         /// Update the owner to the person who owns the most stock

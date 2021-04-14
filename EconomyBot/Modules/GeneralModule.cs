@@ -821,36 +821,36 @@ namespace EconomyBot.Modules
             }
             
         }
-        [Command("invest")]
-        [Summary("Give money to a company")]
-        public async Task invest([Summary("ID of the company you want to invest in.")] ulong company_id, double amount) {
-            if (amount < 0)
-            {
-                Context.Channel.SendMessageAsync("Well that's just plain rude. `(negative investment)`");
-                return;
-            }
-            Company c = null;
-            try { c = CoreClass.economy.getCompany(i => i.ID == company_id); }
-            catch
-            {
-                Context.Channel.SendMessageAsync("There was an issue finding this company. If this company doesn't exist, that would be why.");
-                return;
-            }
-            if (c == null) {
-                Context.Channel.SendMessageAsync("This company doesn't exist!");
-                return;
-            }
-            Individual i = CoreClass.economy.getUser(Context.User.Id);
-            if (i.cashBalance < amount) {
-                Context.Channel.SendMessageAsync("You don't have enough cash for that! What are you, poor? Disgusting.");
-                return;
-            }
-            i.cashBalance -= amount;
-            c.balance += amount;
-            CoreClass.economy.updateUser(i);
-            CoreClass.economy.updateCompany(c);
-            await Context.Channel.SendMessageAsync($"Invested {amount} into {c.name}. Whether this was a good idea is yet to be seen.");
-        }
+        //[Command("invest")]
+        //[Summary("Give money to a company")]
+        //public async Task invest([Summary("ID of the company you want to invest in.")] ulong company_id, double amount) {
+        //    if (amount < 0)
+        //    {
+        //        Context.Channel.SendMessageAsync("Well that's just plain rude. `(negative investment)`");
+        //        return;
+        //    }
+        //    Company c = null;
+        //    try { c = CoreClass.economy.getCompany(i => i.ID == company_id); }
+        //    catch
+        //    {
+        //        Context.Channel.SendMessageAsync("There was an issue finding this company. If this company doesn't exist, that would be why.");
+        //        return;
+        //    }
+        //    if (c == null) {
+        //        Context.Channel.SendMessageAsync("This company doesn't exist!");
+        //        return;
+        //    }
+        //    Individual i = CoreClass.economy.getUser(Context.User.Id);
+        //    if (i.cashBalance < amount) {
+        //        Context.Channel.SendMessageAsync("You don't have enough cash for that! What are you, poor? Disgusting.");
+        //        return;
+        //    }
+        //    i.cashBalance -= amount;
+        //    c.balance += amount;
+        //    CoreClass.economy.updateUser(i);
+        //    CoreClass.economy.updateCompany(c);
+        //    await Context.Channel.SendMessageAsync($"Invested {amount} into {c.name}. Whether this was a good idea is yet to be seen.");
+        //}
 
         [Command("withdraw-c")]
         [Alias("with-c")]
@@ -1281,14 +1281,19 @@ namespace EconomyBot.Modules
                 "You can apply to a job with `$join`, and employers can offer you a job with `$hire`\n" +
                 "You can work at a job and get your wage with `$work`\n\n" +
                 "You can start a company with `$start-company <name>`\n" +
-                "As a company, you can buy _advertising campaigns, astroturfing campaigns, and product stock_ which affect your company's **popularity** and **productivity**\n" +
+                "As a company, you can buy _advertising campaigns_ and _astroturfing campaigns_, which affect your company's **popularity**\n" +
                 "** - advertising campaigns** increase the popularity of your company, getting your name out there to simulated customers, as well as determining your position in job listings _(which you can get with `$job-list`)_\n" +
                 "** - astroturfing campaigns** work to cement and maintain your popularity while minorly increasing it. The amount of running campaigns decreases over time however, so some effort is required to maintain it.\n" +
-                "** - product stock** is only effective for one turn, but gives you large amounts of profit by increasing your productivity.\n\n" +
-                "**popularity** is not as profitable as productivity, however it lasts between turns. That said, its harder or easier to gain popularity depending on how much you have. If you're just starting out, gaining popularity is very difficult, but its also difficult to gain popularity when you have a large amount of it.\n" +
-                "**productivity** is much more profitable to have than popularity, however it comes with the large pitfall of only being effective in one turn. You gain productivity from buying product stock or by getting your workers to `$work`.";
+                "Workers produce products for your company when they do `$work`. Remember, it doesn't matter how popular you are if you don't have anything to sell, so making sure your workers are actually producing for you is important.\n" +
+                "You can set the price of products you're selling with `$set-price <product name> <price>`";
             eb.WithFooter("Use `$help` to get the syntax for the various commands referenced, as well as to see te various other available commands");
             await Context.Channel.SendMessageAsync(embed: eb.Build());
+        }
+        [Command("set-price")]
+        [Alias("add-product", "set-product-price", "update-price")]
+        [Summary("Add a product or set the price for an existing product.")]
+        public async Task setProductPrice(ulong company_id, string product_name, double price) { 
+            
         }
         [Command("set-wage")]
         [Summary("Set the wage of one of your workers")]
@@ -1592,7 +1597,6 @@ namespace EconomyBot.Modules
 
             }
         }        
-
         #region The Funnies
         [Command("Alright funny guy, you think you're some sorta comedian? A humorous person, perhaps? You think you're funny?")]
         [Summary("Yugoslavia")]
