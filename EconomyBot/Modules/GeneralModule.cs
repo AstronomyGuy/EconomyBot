@@ -66,18 +66,18 @@ namespace EconomyBot.Modules
         [Command("start-company")]
         [Summary("Start a company and join the market.")]
         public async Task startCompany([Summary("Name of the company")] string name, double self_wage = 0.0) {
-            if (CoreClass.economy.companies.Exists(c => c.orgOwner == Context.User.Id)) {
-                Context.Channel.SendMessageAsync("You can only have one company at a time.");
-                return;
-            }
+            //if (CoreClass.economy.companies.Exists(c => c.orgOwner == Context.User.Id)) {
+            //    Context.Channel.SendMessageAsync("You can only have one company at a time.");
+            //    return;
+            //}
             if (name.Length > 128) {
                 Context.Channel.SendMessageAsync("That name is too long! (Limit: 128 characters)");
                 return;
             }
             Company c = new Company {
-                ID = (ulong)(CoreClass.economy.companies.Count+1),
+                ID = (ulong)(CoreClass.economy.getNextCompanyId()),
                 creationTime = DateTime.Now,
-                name = name + "™",
+                name = name.Contains("™") ? name : name + "™",
                 balance = 0,
                 orgOwner = Context.User.Id
             };
@@ -106,12 +106,12 @@ namespace EconomyBot.Modules
         }
         [Command("hire")]
         [Summary("Offer someone a job at your company.")]
-        public async Task hire(SocketUser user, double wage, string product) {
+        public async Task hire(ulong company_id, SocketUser user, double wage, string product) {
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);            
             Company c;
             try
             {
-                c = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
             }
             catch (Exception e) {
                 await Context.Channel.SendMessageAsync("There was a problem finding your Company. If you don't own a Company, that would be why.");
@@ -217,13 +217,13 @@ namespace EconomyBot.Modules
         }
         [Summary("Fire an employee from your company.")]
         [Command("fire")]
-        public async Task fire(SocketUser user)
+        public async Task fire(SocketUser user, ulong company_id)
         {
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c;
             try
             {
-                c = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
             }
             catch (Exception e)
             {
@@ -397,11 +397,11 @@ namespace EconomyBot.Modules
         [Command("dissolve-company")]
         [Alias("remove-company", "remove company", "dissolve company")]
         [Summary("Dissolve your company and get it removed from the market.")]
-        public async Task dissolveCompany() {
+        public async Task dissolveCompany(ulong company_id) {
             Company c = null;
             try
             {
-                c = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
             }
             catch (Exception e) {
                 await Context.Channel.SendMessageAsync("There was an issue getting your comapny; If you don't have a company, there's your problem.");
@@ -756,12 +756,12 @@ namespace EconomyBot.Modules
         [Command("profit-projections")]
         [Alias("project-profit", "project-income", "project-incomes", "income-projections", "profit-projection", "income-projection")]
         [Summary("Estimate the amount of money that your company will make in the next update, assuming nothing changes until the next update.")]
-        public async Task profitProjection() {
+        public async Task profitProjection(ulong company_id) {
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c;
             try
             {
-                c = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
             }
             catch (Exception e)
             {
@@ -926,10 +926,10 @@ namespace EconomyBot.Modules
         }
         [Command("buy-c")]
         [Summary("Buy a product as a company")]
-        public async Task buyComp([Summary("Name of the product you want to buy.")] string product_name, int count = 1)
+        public async Task buyComp([Summary("Name of the product you want to buy.")] string product_name, ulong company_id, int count = 1)
         {
             Company c = null;
-            try { c = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id); }
+            try { c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id); }
             catch { Context.Channel.SendMessageAsync("There was an an issue finding your company. If you don't have one, that would be why."); return; }
             if (c == null) {
                 Context.Channel.SendMessageAsync("You don't have a company to buy products with!");
@@ -972,18 +972,13 @@ namespace EconomyBot.Modules
         }
 
         [Command("buy-company")]
-        [Summary("Offer to buy a company for its net worth. **Does not work if you already have a company, for now.**")]
+        [Summary("Offer to buy a company for its net worth.")]
         public async Task buyCompany([Summary("ID of the company you want to buy.")]  ulong id)
         {
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c;
             try
             {
-                if (CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id) != null)
-                {
-                    Context.Channel.SendMessageAsync($"You already own a company! If you're looking to merge companies, you'll want to do `{CoreClass.DEFAULT_PREFIX}merge <company id> [price]`.");
-                    return;
-                }
                 c = CoreClass.economy.getCompany(c => c.ID == id);
             }
             catch (Exception e)
@@ -1013,6 +1008,7 @@ namespace EconomyBot.Modules
                         i.cashBalance += c.balance;
                         hirer.cashBalance -= c.balance;                       
                         c.orgOwner = Context.User.Id;
+                        i.ownedStock.Where(s => s.companyBought == c.ID).ToList().ForEach(s => s.sell(hirer.ID, 0));
                         Context.Channel.SendMessageAsync($"{Context.User.Mention} has bought {c.name}.");
                         return;
                     }
@@ -1035,10 +1031,6 @@ namespace EconomyBot.Modules
             Company c;
             try
             {
-                if (CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id) != null) {
-                    Context.Channel.SendMessageAsync($"You already own a company! If you're looking to merge companies, you'll want to do `{CoreClass.DEFAULT_PREFIX}merge <company id> [price]`.");
-                    return;
-                }
                 c = CoreClass.economy.getCompany(c => c.ID == id);
             }
             catch (Exception e)
@@ -1068,6 +1060,7 @@ namespace EconomyBot.Modules
                         i.cashBalance += price;
                         hirer.cashBalance -= price;                        
                         c.orgOwner = Context.User.Id;
+                        i.ownedStock.Where(s => s.companyBought == c.ID).ToList().ForEach(s => s.sell(hirer.ID, 0));
                         Context.Channel.SendMessageAsync($"{Context.User.Mention} has bought {c.name} for {price}.");
                         return;
                     }
@@ -1085,7 +1078,7 @@ namespace EconomyBot.Modules
         }
         [Command("merge")]
         [Summary("Merge two companies into one company under the user executing this command.")]
-        public async Task mergeComp([Summary("ID of the company you want to merge with.")] ulong id) {
+        public async Task mergeComp(ulong your_company_id, [Summary("ID of the company you want to merge with.")] ulong id) {
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c1;
             Company c2;
@@ -1097,7 +1090,7 @@ namespace EconomyBot.Modules
                     return;
                 }
                 c1 = CoreClass.economy.getCompany(c => c.ID == id);
-                c2 = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
+                c2 = CoreClass.economy.getCompany(c => c.ID == your_company_id && c.orgOwner == Context.User.Id);
             }
             catch (Exception e)
             {
@@ -1131,7 +1124,12 @@ namespace EconomyBot.Modules
                         }
                         c2.popularity = (c1.popularity + c2.popularity) / 2;
                         c2.members.AddRange(c2.members);
-                        c2.balance += c1.balance;
+                        c2.balance += c1.balance; 
+
+                        //Owner of merging company gives half of their stock (i.e. ownership) to user
+                        Individual i = CoreClass.economy.getUser(c2.orgOwner);
+                        i.ownedStock.Where(s => s.companyBought == c2.ID).ToList().ForEach(s => s.sell(hirer.ID, 0, s.amount / 2));
+
                         CoreClass.economy.updateCompany(c2);
                         CoreClass.economy.removeCompany(c1);
                         return;
@@ -1294,12 +1292,12 @@ namespace EconomyBot.Modules
         }
         [Command("set-wage")]
         [Summary("Set the wage of one of your workers")]
-        public async Task setWage(SocketUser worker, double newWage) {
+        public async Task setWage(ulong company_id, SocketUser worker, double newWage) {
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c;
             try
             {
-                c = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
             }
             catch (Exception e)
             {
