@@ -70,7 +70,10 @@ namespace EconomyBot.Modules
                 Context.Channel.SendMessageAsync("You can only have one company at a time.");
                 return;
             }
-
+            if (name.Length > 128) {
+                Context.Channel.SendMessageAsync("That name is too long! (Limit: 128 characters)");
+                return;
+            }
             Company c = new Company {
                 ID = (ulong)(CoreClass.economy.companies.Count+1),
                 creationTime = DateTime.Now,
@@ -1154,7 +1157,7 @@ namespace EconomyBot.Modules
             CoreClass.debug = !CoreClass.debug;
             await Context.Channel.SendMessageAsync($"Debug mode: {CoreClass.debug}");
         }
-        [Command("dashboard")]
+        [Command("user-dashboard")]
         [Summary("Gives an overview of all relevant info for you.")]
         public async Task dashboard() {
             EmbedBuilder embed = new EmbedBuilder();
@@ -1182,23 +1185,95 @@ namespace EconomyBot.Modules
             jobs.Value = jobValue;
             embed.AddField(jobs);
 
-            Company company = CoreClass.economy.getCompany(c => c.orgOwner == Context.User.Id);
-            if (company != null) {
-                EmbedFieldBuilder com = new EmbedFieldBuilder();
-                com.Name = $"Your Company | {company.name} (ID: {company.ID})";
-                com.Value = $"**Expected Gross Income:** ${Math.Round(company.getIncomeProjection()[2], 2)}\n" +
-                    $"**Total Employee Wages:** ${company.employeeWages.Values.Sum()}\n" +
-                    $"**Balance:** ${company.balance}\n\n" +
-                    $"**Popularity:** {company.popularity}\n" +
-                    $"**Total Stock:** {company.productStock.Select(t => t.Value).Sum()}\n" +
-                    $"**Stock Price:** {company.stock_price}";
-                embed.AddField(com);
+            EmbedFieldBuilder companies = new EmbedFieldBuilder();
+            List<Company> ownedComps = CoreClass.economy.companies.Where(c => c.orgOwner == Context.User.Id).ToList();
+            companies.Name = "Your businesses";
+            if (ownedComps.Count > 0)
+            {
+                string companiesValue = "";
+                foreach (Company c in ownedComps) {
+                    companiesValue += $"{c.name} (ID: {c.ID})\n";
+                }
+                companies.Value = companiesValue;
             }
+            else {
+                companies.Value = "You don't currently own any businesses.";
+            }
+            embed.AddField(companies);
+
             embed.WithFooter("I'm making this at like 12:30AM and I can't be bothered to put sometihng funny here.");
             embed.WithTitle(Context.User.Username + "#" + Context.User.Discriminator + "'s Dashboard");
             embed.Color = Color.Blue;
             await Context.Channel.SendMessageAsync(embed: embed.Build());
         }
+
+        [Command("company-dashboard")]
+        [Summary("Gives a dashboard with relevant information about a specific company")]
+        public async Task companyDashboard(ulong company_id)
+        {
+            if (!CoreClass.economy.companies.Exists(c => c.ID == company_id))
+            {
+                Context.Channel.SendMessageAsync($"That company does not exist.");
+                return;
+            }            
+            EmbedBuilder embed = new EmbedBuilder();
+            Company company = CoreClass.economy.getCompany(c => c.ID == company_id);
+
+            if (company.orgOwner != Context.User.Id) {
+                Context.Channel.SendMessageAsync("You don't own this company!");
+                return;
+            }
+
+            EmbedFieldBuilder com = new EmbedFieldBuilder();
+            com.Name = $"Your Company | {company.name} (ID: {company.ID})";
+            com.Value = $"**Expected Gross Income:** ${Math.Round(company.getIncomeProjection()[2], 2)}\n" +
+                $"**Total Employee Wages:** ${company.employeeWages.Values.Sum()}\n" +
+                $"**Balance:** ${company.balance}\n\n" +
+                $"**Popularity:** {company.popularity}\n" +
+                $"**Total Stock:** {company.productStock.Select(t => t.Value).Sum()}\n" +
+                $"**Stock Price:** {company.stock_price}";
+            embed.AddField(com);  
+            
+            embed.WithTitle($"{company.name} Dashboard");
+            embed.Color = Color.Blue;
+            await Context.Channel.SendMessageAsync(embed: embed.Build());
+        }
+        [Command("stock-dashboard")]
+        [Summary("Get summarized info of what stocks you own")]
+        public async Task stockDashboard()
+        {
+            EmbedBuilder embed = new EmbedBuilder();
+
+            EmbedFieldBuilder user = new EmbedFieldBuilder();
+            Individual i = CoreClass.economy.getUser(Context.User.Id);
+            user.Name = "Balance";
+            user.Value = $"**ID:** `{Context.User.Id}`\n**Balance:** ${i.balance} (Bank), ${i.cashBalance} (Cash)\n";
+            embed.AddField(user);
+
+            EmbedFieldBuilder stockField = new EmbedFieldBuilder();
+            stockField.Name = "Stocks";
+            if (i.ownedStock.Count > 0)
+            {
+                string val = "";
+                foreach (Stock s in i.ownedStock) {
+                    if (!CoreClass.economy.companies.Exists(c => c.ID == s.companyBought)) {
+                        continue;
+                    }
+                    Company c = CoreClass.economy.getCompany(c => c.ID == s.companyBought);
+                    val += $"{c.name} (ID: {c.ID}) | {s.amount} shares, {decimal.Round((decimal)Company.sharesToPercentage(s.amount) * 100, 4)}% ownership\n";
+                }
+            }
+            else {
+                stockField.Value = "You don't have a share of any company currently.";
+            }
+            embed.AddField(stockField);
+
+            embed.WithFooter("Line go up means world more gooder");
+            embed.WithTitle(Context.User.Username + "#" + Context.User.Discriminator + "'s Stocks");
+            embed.Color = Color.Blue;
+            await Context.Channel.SendMessageAsync(embed: embed.Build());
+        }
+
         [Command("quick-start")]
         [Summary("Gives a brief explanation on how to use the bot")]
         public async Task quickStart() {
@@ -1454,11 +1529,71 @@ namespace EconomyBot.Modules
 
         [Command("buy-stock %")]
         [Alias("buy-stock percent", "buy-stock percentage", "buy-stock -p")]
-        [Summary("Nuy a percentage of a company from another person.")]
+        [Summary("Buy a percentage of a company from another person.")]
         public async Task buyStockPerc(SocketUser seller, ulong company_id, double price, double percentage)
         {
             sellStock(seller, company_id, price, Company.percentageToShares(percentage / 100));
         }
+
+        [Command("stock-graph")]
+        [Alias("stock-graph -e", "full-stock-graph")]
+        [Summary("Graphs all stock prices in the economy")]
+        public async Task stockGraph() {
+            try
+            {
+                List<Company> eObjects = CoreClass.economy.companies; //All the companies
+                List<List<double>> economyObjects = new List<List<double>>(); //All the companies' history
+                eObjects.ForEach(t => economyObjects.Add(t.stock_history)); //Actually add the companies' history
+                List<double> fullHistory = new List<double>();
+                foreach (List<double> eObj in economyObjects)
+                {
+                    while (fullHistory.Count < eObj.Count)
+                    {
+                        fullHistory.Add(0.0);
+                    }
+                    for (int i = eObj.Count - 1; i >= 0; i--)
+                    {
+                        //eObj.Count - (i + 1)
+                        fullHistory[eObj.Count - (i + 1)] += eObj[i];
+                    }
+                }
+                string filename = DateTime.Now.ToBinary().ToString();
+                RandUtil.ActivityGraph(filename, fullHistory, Context.Channel);
+                await Context.Channel.SendFileAsync(filename + ".png");
+            }
+            catch (Exception ex)
+            {
+                SocketUser u = Context.Client.GetUser(374280713387900938);
+                await u.SendMessageAsync($"**`{ex.Message}`**");
+                await u.SendMessageAsync($"```{ex.StackTrace}```");
+                await Context.Channel.SendMessageAsync("There was an error generating this graph. I've DMed byte the details, so he'll be on that when Birnam Wood moves.");
+
+            }
+        }
+        [Command("stock-graph")]
+        [Alias("company-stock-graph", "stock-graph-c", "stock-graph -c")]
+        [Summary("Graphs the stock of a specified company")]
+        public async Task stockGraph(ulong company_id) {
+            if (!CoreClass.economy.companies.Exists(c => c.ID == company_id)) {
+                Context.Channel.SendMessageAsync("That comapny doesn't exist.");
+                return;
+            }
+            Company c = CoreClass.economy.getCompany(c => c.ID == company_id);
+            try
+            {                
+                string filename = DateTime.Now.ToBinary().ToString();
+                RandUtil.ActivityGraph(filename, c.stock_history, Context.Channel);
+                await Context.Channel.SendFileAsync(filename + ".png");
+            }
+            catch (Exception ex)
+            {
+                SocketUser u = Context.Client.GetUser(374280713387900938);
+                await u.SendMessageAsync($"**`{ex.Message}`**");
+                await u.SendMessageAsync($"```{ex.StackTrace}```");
+                await Context.Channel.SendMessageAsync("There was an error generating this graph. I've DMed byte the details, so he'll be on that when Birnam Wood moves.");
+
+            }
+        }        
 
         #region The Funnies
         [Command("Alright funny guy, you think you're some sorta comedian? A humorous person, perhaps? You think you're funny?")]

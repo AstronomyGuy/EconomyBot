@@ -52,6 +52,7 @@ namespace EconomyBot.Economy
             seller.addStock(companyBought, -1 * amount);
 
             c.stock_price = price / amountBuying;
+            c.updateOwner();
 
             CoreClass.economy.updateUser(seller);
             CoreClass.economy.updateUser(iBuyer);

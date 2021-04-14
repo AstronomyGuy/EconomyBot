@@ -196,6 +196,11 @@ namespace EconomyBot.Economy
             if (astroturfs > 1) {
                 astroturfs--;
             }
+
+            //Update stock history
+            stock_history.Add(stock_price);
+
+            //Update owner
             updateOwner();
             return output;
         }
