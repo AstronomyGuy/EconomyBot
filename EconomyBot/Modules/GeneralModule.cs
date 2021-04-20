@@ -478,7 +478,7 @@ namespace EconomyBot.Modules
         [Alias("gov-income")]
         [Summary("Get the income of the GUBMENT.")]
         public async Task setGovIncome(double inc) {
-            if (double.IsNaN(in) || double.IsInfinity(inc))
+            if (double.IsNaN(inc) || double.IsInfinity(inc))
             {
                 Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
                 return;
