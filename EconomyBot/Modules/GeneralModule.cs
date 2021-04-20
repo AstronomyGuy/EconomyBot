@@ -70,6 +70,11 @@ namespace EconomyBot.Modules
             //    Context.Channel.SendMessageAsync("You can only have one company at a time.");
             //    return;
             //}
+            if (double.IsNaN(self_wage) || double.IsInfinity(self_wage))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (name.Length > 128) {
                 Context.Channel.SendMessageAsync("That name is too long! (Limit: 128 characters)");
                 return;
@@ -107,6 +112,11 @@ namespace EconomyBot.Modules
         [Command("hire")]
         [Summary("Offer someone a job at your company.")]
         public async Task hire(ulong company_id, SocketUser user, double wage, string product) {
+            if (double.IsNaN(wage) || double.IsInfinity(wage))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);            
             Company c;
             try
@@ -154,6 +164,11 @@ namespace EconomyBot.Modules
         [Command("join")]
         [Summary("Offer to join a user's company and produce some product.")]
         public async Task join(ulong company_id, double wage, string product) {
+            if (double.IsNaN(wage) || double.IsInfinity(wage))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (CoreClass.economy.companies.Exists(c => c.ID == company_id))
             {
                 Company c = CoreClass.economy.getCompany(c => c.ID == company_id);
@@ -168,6 +183,11 @@ namespace EconomyBot.Modules
         [Summary("Offer to join a user's company and produce some product.")]
         public async Task join(SocketUser user, double wage, string product)
         {
+            if (double.IsNaN(wage) || double.IsInfinity(wage))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             Individual hirer = CoreClass.economy.getUser(user.Id);
             Company c;
             try
@@ -458,6 +478,11 @@ namespace EconomyBot.Modules
         [Alias("gov-income")]
         [Summary("Get the income of the GUBMENT.")]
         public async Task setGovIncome(double inc) {
+            if (double.IsNaN(in) || double.IsInfinity(inc))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             SocketGuildUser gU = Context.User as SocketGuildUser;
             if (!gU.Roles.Contains(Context.Guild.GetRole(774802078391992330)) || !CoreClass.economy.botMods.Contains(Context.User.Id))
             {
@@ -472,6 +497,11 @@ namespace EconomyBot.Modules
         [Summary("Get the spending of the GUBMENT.")]
         public async Task setGovSpending(double spending)
         {
+            if (double.IsNaN(spending) || double.IsInfinity(spending))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             SocketGuildUser gU = Context.User as SocketGuildUser;
             if (!gU.Roles.Contains(Context.Guild.GetRole(774802078391992330)) || !CoreClass.economy.botMods.Contains(Context.User.Id))
             {
@@ -502,6 +532,11 @@ namespace EconomyBot.Modules
         [Summary("Add money to the treasury")]
         [RequireContext(ContextType.Guild)]
         public async Task addTreasuryMoney(double amount) {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             SocketGuildUser gU = Context.User as SocketGuildUser;
             if (!gU.Roles.Contains(Context.Guild.GetRole(774802078391992330)) || !CoreClass.economy.botMods.Contains(Context.User.Id)) {
                 Context.Channel.SendMessageAsync("You need the `Secretary of Treasury` role or be a bot moderator to do that.");
@@ -515,6 +550,11 @@ namespace EconomyBot.Modules
         [Summary("Remove money from the treasury")]
         public async Task removeTreasuryMoney(double amount)
         {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             SocketGuildUser gU = Context.User as SocketGuildUser;
             if (!gU.Roles.Contains(Context.Guild.GetRole(774802078391992330)) || !CoreClass.economy.botMods.Contains(Context.User.Id))
             {
@@ -528,6 +568,11 @@ namespace EconomyBot.Modules
         [Summary("Find money from thin air and add it to a user")]
         public async Task addMoney(SocketUser user, double amount)
         {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (!CoreClass.economy.botMods.Contains(Context.User.Id)) {
                 Context.Channel.SendMessageAsync("You don't have permission to use this command.");
                 return;
@@ -542,6 +587,11 @@ namespace EconomyBot.Modules
         [Summary("Take money from a user and throw it into a large pit in the middle of New Mexico made on March 8, 1982.")]
         public async Task removeMoney(SocketUser user, double amount)
         {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (!CoreClass.economy.botMods.Contains(Context.User.Id))
             {
                 Context.Channel.SendMessageAsync("You don't have permission to use this command.");
@@ -557,6 +607,11 @@ namespace EconomyBot.Modules
         [Summary("Engage in demonic rituals to summon money and give it to a company.")]
         public async Task addCompanyMoney([Summary("The user that owns the company you want to add money to")] SocketUser user, double amount)
         {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (!CoreClass.economy.botMods.Contains(Context.User.Id))
             {
                 Context.Channel.SendMessageAsync("You don't have permission to use this command.");
@@ -572,6 +627,11 @@ namespace EconomyBot.Modules
         [Summary("Take money from a company and dump it in the Indian Ocean")]
         public async Task removeCompanyMoney([Summary("The user that owns the company you want to remove money from")] SocketUser user, double amount)
         {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (!CoreClass.economy.botMods.Contains(Context.User.Id))
             {
                 Context.Channel.SendMessageAsync("You don't have permission to use this command.");
@@ -586,6 +646,11 @@ namespace EconomyBot.Modules
         [Command("set-role-income")]
         [Summary("Set the daily income of a role")]
         public async Task setRoleIncome(SocketRole r, double d) {
+            if (double.IsNaN(d) || double.IsInfinity(d))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             SocketGuildUser gU = Context.User as SocketGuildUser;
             if (!gU.Roles.Contains(Context.Guild.GetRole(774802078391992330)) && !CoreClass.economy.botMods.Contains(Context.User.Id))
             {
@@ -631,6 +696,11 @@ namespace EconomyBot.Modules
         [Summary("Deposit some amount of money to the bank.")]
         public async Task deposit(double d)
         {
+            if (double.IsNaN(d) || double.IsInfinity(d))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             Individual i = CoreClass.economy.getUser(Context.User.Id);
             if (i.cashBalance < d)
             {
@@ -648,6 +718,11 @@ namespace EconomyBot.Modules
         [Alias("with-i")]
         [Summary("Withdraw money from the bank")]
         public async Task withdraw(double d) {
+            if (double.IsNaN(d) || double.IsInfinity(d))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (d < 0)
             {
                 await Context.Channel.SendMessageAsync("You can't take out a negative amount of money");
@@ -681,8 +756,13 @@ namespace EconomyBot.Modules
         [Command("pay")]
         [Summary("Give money to someone.")]
         public async Task pay(SocketUser user, double amount) {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (user.IsBot) {
-                Context.Channel.SendMessageAsync("Can't pay a bot, they don't have rights!");
+                Context.Channel.SendMessageAsync("You can't pay a bot, they don't have rights!");
                 return;
             }
             if (amount < 0) {
@@ -857,6 +937,11 @@ namespace EconomyBot.Modules
         [Summary("Withdraw money from your company")]
         public async Task withdrawCompany(double amount)
         {
+            if (double.IsNaN(amount) || double.IsInfinity(amount))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (amount < 0) {
                 await Context.Channel.SendMessageAsync("You can't take out a negative amount of money");
                 return;
@@ -912,7 +997,7 @@ namespace EconomyBot.Modules
 
         [Command("buy-i")]
         [Summary("Buy a product as an individual. For any products with a space in their name, make sure to put the product name in quotes.")]
-        public async Task buyInd([Summary("Name of the product that you want to buy.")] string product_name, int count = 1) {
+        public async Task buyInd([Summary("Name of the product that you want to buy.")] string product_name, int count = 1) {            
             Individual i = CoreClass.economy.getUser(Context.User.Id);
             string input = product_name.ToLower();
             input = input.Trim();
@@ -1027,6 +1112,11 @@ namespace EconomyBot.Modules
         [Command("buy-company")]
         [Summary("Offer to buy a company for a specific price **Does not work if you already have a company, for now.**")]
         public async Task buyCompany([Summary("ID of the company you want to buy.")]  ulong id, double price) {
+            if (double.IsNaN(price) || double.IsInfinity(price))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c;
             try
@@ -1079,6 +1169,7 @@ namespace EconomyBot.Modules
         [Command("merge")]
         [Summary("Merge two companies into one company under the user executing this command.")]
         public async Task mergeComp(ulong your_company_id, [Summary("ID of the company you want to merge with.")] ulong id) {
+
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c1;
             Company c2;
@@ -1292,12 +1383,49 @@ namespace EconomyBot.Modules
         [Command("set-price")]
         [Alias("add-product", "set-product-price", "update-price")]
         [Summary("Add a product or set the price for an existing product.")]
-        public async Task setProductPrice(ulong company_id, string product_name, double price) { 
-            
+        public async Task setProductPrice(ulong company_id, string product_name, double price) {
+            if (double.IsNaN(price) || double.IsInfinity(price)) {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
+            Company c;
+            try
+            {
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.SendMessageAsync("There was a problem finding your Company. If you don't *own* a Company, that would be why.");
+                return;
+            }
+            if (c == null)
+            {
+                await Context.Channel.SendMessageAsync("You need a company before you can set products!");
+                return;
+            }
+            else
+            {
+                if (c.products.ContainsKey(product_name))
+                {
+                    c.products[product_name] = price;
+                }
+                else {
+                    //There is no case where the product doesnt exist in products but it has an entry in productStock
+                    c.products.Add(product_name, price);
+                    c.productStock.Add(product_name, 0);
+                }
+                Context.Channel.SendMessageAsync($"Set the price of {product_name} to ${price}");
+                CoreClass.economy.updateCompany(c);
+            }
         }
         [Command("set-wage")]
         [Summary("Set the wage of one of your workers")]
         public async Task setWage(ulong company_id, SocketUser worker, double newWage) {
+            if (double.IsNaN(newWage) || double.IsInfinity(newWage))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             Individual hirer = CoreClass.economy.getUser(Context.User.Id);
             Company c;
             try
@@ -1386,6 +1514,11 @@ namespace EconomyBot.Modules
         [Alias("sell-stock -s", "sell-stock shares", "sell-share", "sell-shares")]
         [Summary("Sell shares of a company to another person.")]
         public async Task sellStock(SocketUser buyer, ulong company_id, double price, double amount) {
+            if (double.IsNaN(price) || double.IsInfinity(price))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (amount <= 0) {
                 Context.Channel.SendMessageAsync("You can't sell 0 or negative stock.");
                 return;
@@ -1462,6 +1595,11 @@ namespace EconomyBot.Modules
         [Summary("Buy shares of a company from another person.")]
         public async Task buyStock(SocketUser seller, ulong company_id, double price, double amount)
         {
+            if (double.IsNaN(price) || double.IsInfinity(price))
+            {
+                Context.Channel.SendMessageAsync("Invalid amount; NaN or Infinity is not permitted.");
+                return;
+            }
             if (amount <= 0)
             {
                 Context.Channel.SendMessageAsync("You can't buy 0 or negative stock.");

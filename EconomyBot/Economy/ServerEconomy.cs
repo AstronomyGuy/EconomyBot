@@ -145,6 +145,10 @@ namespace EconomyBot.Economy
         {
             return companies.Find(p);
         }
+        internal Company getCompany(ulong p)
+        {
+            return getCompany(c => c.ID == p);
+        }
 
         internal void addCompany(Company c)
         {
