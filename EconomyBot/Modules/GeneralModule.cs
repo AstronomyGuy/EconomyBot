@@ -86,6 +86,8 @@ namespace EconomyBot.Modules
                 balance = 0,
                 orgOwner = Context.User.Id
             };
+            c.products.Add("nothing", 0);
+            c.productStock.Add("nothing", 0);
             c.addEmployee(Context.User.Id, self_wage);
             Individual i = CoreClass.economy.getUser(Context.User.Id);
             i.ownedStock.Add(new Stock() { 
@@ -901,36 +903,39 @@ namespace EconomyBot.Modules
             }
             
         }
-        //[Command("invest")]
-        //[Summary("Give money to a company")]
-        //public async Task invest([Summary("ID of the company you want to invest in.")] ulong company_id, double amount) {
-        //    if (amount < 0)
-        //    {
-        //        Context.Channel.SendMessageAsync("Well that's just plain rude. `(negative investment)`");
-        //        return;
-        //    }
-        //    Company c = null;
-        //    try { c = CoreClass.economy.getCompany(i => i.ID == company_id); }
-        //    catch
-        //    {
-        //        Context.Channel.SendMessageAsync("There was an issue finding this company. If this company doesn't exist, that would be why.");
-        //        return;
-        //    }
-        //    if (c == null) {
-        //        Context.Channel.SendMessageAsync("This company doesn't exist!");
-        //        return;
-        //    }
-        //    Individual i = CoreClass.economy.getUser(Context.User.Id);
-        //    if (i.cashBalance < amount) {
-        //        Context.Channel.SendMessageAsync("You don't have enough cash for that! What are you, poor? Disgusting.");
-        //        return;
-        //    }
-        //    i.cashBalance -= amount;
-        //    c.balance += amount;
-        //    CoreClass.economy.updateUser(i);
-        //    CoreClass.economy.updateCompany(c);
-        //    await Context.Channel.SendMessageAsync($"Invested {amount} into {c.name}. Whether this was a good idea is yet to be seen.");
-        //}
+        [Command("pay-company")]
+        [Summary("Give money to a company")]
+        public async Task invest([Summary("ID of the company you want to invest in.")] ulong company_id, double amount)
+        {
+            if (amount < 0)
+            {
+                Context.Channel.SendMessageAsync("Well that's just plain rude. `(negative investment)`");
+                return;
+            }
+            Company c = null;
+            try { c = CoreClass.economy.getCompany(i => i.ID == company_id); }
+            catch
+            {
+                Context.Channel.SendMessageAsync("There was an issue finding this company. If this company doesn't exist, that would be why.");
+                return;
+            }
+            if (c == null)
+            {
+                Context.Channel.SendMessageAsync("This company doesn't exist!");
+                return;
+            }
+            Individual i = CoreClass.economy.getUser(Context.User.Id);
+            if (i.cashBalance < amount)
+            {
+                Context.Channel.SendMessageAsync("You don't have enough cash for that! What are you, poor? Disgusting.");
+                return;
+            }
+            i.cashBalance -= amount;
+            c.balance += amount;
+            CoreClass.economy.updateUser(i);
+            CoreClass.economy.updateCompany(c);
+            await Context.Channel.SendMessageAsync($"Gave ${amount} to {c.name}. Whether this was a good idea is yet to be seen.");
+        }
 
         [Command("withdraw-c")]
         [Alias("with-c")]

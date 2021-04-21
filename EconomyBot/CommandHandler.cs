@@ -116,6 +116,8 @@ namespace EconomyBot
                     return;
                 }
                 await context.Channel.SendMessageAsync($"An unhandled error ocurred: ```{result.ErrorReason}```\n<@374280713387900938> you incompetent FOOL come look at this");
+                //ISocketMessageChannel c = context.Client.GetChannel(834128708801134613) as ISocketMessageChannel;
+                //c.SendMessageAsync($"**Error in {context.Guild.Name} - {context.Channel.Name}:** {result.ErrorReason}");                
             }
         }
     }

@@ -26,18 +26,20 @@ namespace EconomyBot.Modules
         [Summary("Gives the change log for the more recent update")]
         public async Task changelog() {
             EmbedBuilder eb = new EmbedBuilder();
-            eb.WithTitle("Changelog | Version 1.6");
+            eb.WithTitle("Changelog | Version 1.6 Hotfix 4");
             eb.WithDescription(" - introduced stocks\n" +
                 " - buffed profits\n" +
                 " - added $next-turn\n" +
                 " - fixed a bunch of bugs ~~which I though I already fixed but apparently not~~\n" +
+                " - You can no longer pay people $NaN and freeze them\n" +
                 " - made the status message use $help instead of !help\n" +
-                " - added $stock-dashboard");
+                " - added more dashboards");
             eb.WithFooter("Updates come out slowly, sorry if you're waiting on an update that hasn't come out yet");
             await Context.Channel.SendMessageAsync(embed: eb.Build());
         }
 
         [Command("help")]
+        [Alias("commands")]
         [Summary("Get the list of commands available in this bot, or get the syntax for using a specific command")]
         public async Task help(string commandString = "not_actually_default_ignore_this")
         {

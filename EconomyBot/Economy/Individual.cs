@@ -117,8 +117,11 @@ namespace EconomyBot.Economy
         {
             Dictionary<string, double> buyable = new Dictionary<string, double>();
             foreach (Company c in CoreClass.economy.companies) {
-                foreach (KeyValuePair<string, double> valuePair in c.products) {
-                    buyable.Add($"{c.name} {valuePair.Key}", valuePair.Value);
+                foreach (KeyValuePair<string, double> valuePair in c.products.ToList()) {
+                    if (valuePair.Key == "nothing" && valuePair.Value == 0) {
+                        continue;
+                    }
+                    buyable.Add($"_{c.name}_ {valuePair.Key}", valuePair.Value);
                 }
             }
             return buyable;

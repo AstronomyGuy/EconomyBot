@@ -195,18 +195,18 @@ namespace EconomyBot.Economy
         /// <returns>the amount of money the company earned in this turn</returns>
         public double getIncome()
         {
-            TriangularDistribution t = new TriangularDistribution(0.5, 1.2, 2);
+            TriangularDistribution t = new TriangularDistribution(0.5, 2, 1.2);
             double sellRate = popularityToModifier(popularity * t.Sample());
-            double output = 0;
-            foreach (KeyValuePair<string, int> valuePair in productStock) {
-                int sold = (int)(valuePair.Value * sellRate);
-                productStock[valuePair.Key] -= sold;
-                output += products[valuePair.Key] * sold;
+            double output = 0;            
+            foreach (string key in productStock.Keys.ToList()) {
+                int sold = (int)(productStock[key] * sellRate);
+                productStock[key] -= sold;
+                output += products[key] * sold;               
             }
 
             //Dividends
             double totalDividendCost = 0;
-            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID))) {
+            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID)).ToList()) {
                 if (i.ID == orgOwner)
                 {
                     //Profits that would normally go to owner stay in the company
