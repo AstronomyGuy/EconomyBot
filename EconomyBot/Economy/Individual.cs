@@ -126,5 +126,32 @@ namespace EconomyBot.Economy
             }
             return buyable;
         }
+
+        public override bool buy(string product, Dictionary<string, double> stock = null, int count = 1)
+        {
+            if (stock == null)
+            {
+                stock = this.getBuyable();
+            }
+            if (stock.Keys.Contains(product))
+            {
+                if (balance >= count * stock[product])
+                {
+                    Company c = CoreClass.economy.getCompany(c => product.Contains(c.name));
+                    string trimProduct = product.Substring($"_{c.name}_ ".Length); //Product without the company's name
+                    balance -= count * stock[trimProduct];
+                    c.balance += count * stock[trimProduct];
+                    CoreClass.economy.updateCompany(c);
+                    return true;
+                }
+                else
+                {
+                    //Tell the user they're too poor for this
+                    //Imagine
+                    return false;
+                }
+            }
+            return false;
+        }
     }
 }
