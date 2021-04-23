@@ -1469,15 +1469,15 @@ namespace EconomyBot.Modules
 
             EmbedBuilder eb = new EmbedBuilder();
             eb.WithTitle("Irp Time");
-            eb.WithFooter("Times are calculated based on the time since Nimitz's Inauguration, since it's a convenient landmark for time.");
+            eb.WithFooter("Times are calculated based on the time since Byte's Inauguration, since it's a convenient landmark for time.");
             eb.Color = Color.Red;
 
             EmbedFieldBuilder currentTime = new EmbedFieldBuilder();
             currentTime.Name = "Current Time";
             //IRP Inauguration Date
-            DateTime start = new DateTime(2036, 1, 20);
+            DateTime start = new DateTime(2040, 1, 20);
             //IRL Inauguration Date
-            DateTime inauguration = new DateTime(2021, 3, 25);
+            DateTime inauguration = new DateTime(2021, 4, 22);
             TimeSpan timeSince = DateTime.Now.Subtract(inauguration);
             //IRP Time
             DateTime end = start.AddDays((timeSince.TotalDays / 7) * 365.26);
@@ -1514,7 +1514,7 @@ namespace EconomyBot.Modules
 
             await Context.Channel.SendMessageAsync(embed: eb.Build());
 
-        }
+        }        
         [Command("sell-stock share")]
         [Alias("sell-stock -s", "sell-stock shares", "sell-share", "sell-shares")]
         [Summary("Sell shares of a company to another person.")]
