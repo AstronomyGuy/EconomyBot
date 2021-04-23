@@ -14,6 +14,12 @@ namespace EconomyBot.Economy
         //Amount of Stock
         public double amount;
 
+        public Stock(ulong owner, ulong company, double amount) {
+            this.owner = owner;
+            this.companyBought = company;
+            this.amount = amount;
+        }
+
         /// <summary>
         /// Transfer some or all of this stock to another user for some price
         /// </summary>

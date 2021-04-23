@@ -1346,14 +1346,18 @@ namespace EconomyBot.Modules
 
             EmbedFieldBuilder stockField = new EmbedFieldBuilder();
             stockField.Name = "Stocks";
-            if (i.ownedStock.Count > 0)
+            if (i.ownedStock != null && i.ownedStock.Count > 0)
             {
                 string val = "";
                 foreach (Stock s in i.ownedStock) {
                     if (!CoreClass.economy.companies.Exists(c => c.ID == s.companyBought)) {
                         continue;
                     }
+                    
                     Company c = CoreClass.economy.getCompany(c => c.ID == s.companyBought);
+                    if (c == null) {
+                        continue;
+                    }
                     val += $"{c.name} (ID: {c.ID}) | {s.amount} shares, {decimal.Round((decimal)Company.sharesToPercentage(s.amount) * 100, 4)}% ownership\n";
                 }
             }
@@ -1642,7 +1646,7 @@ namespace EconomyBot.Modules
                     switch (sale)
                     {
                         case Stock.sellResult.SOLD_SUCCESSFULLY:
-                            await Context.Channel.SendMessageAsync($"Bought {amount} shares of {c.name} for a total of ${price}!");
+                            await Context.Channel.SendMessageAsync($"Bought {amount} ({decimal.Round((decimal)Company.sharesToPercentage(amount) * 100, 4)}%) shares of {c.name} for a total of ${price}!");
                             break;
                         case Stock.sellResult.DENIED_AMOUNT_TOO_LARGE:
                             Context.Channel.SendMessageAsync("Denied: You can't buy more stock than the other person owns!");
@@ -1670,7 +1674,7 @@ namespace EconomyBot.Modules
 
             m.ResponseReceived += handleEventAsync;
             CoreClass.responseThreads.Add(m);
-            Context.Channel.SendMessageAsync($"{Context.User.Mention} has offered to buy {amount} shares of {c.name} for ${price}! Do you accept? (yes/no)");
+            Context.Channel.SendMessageAsync($"{Context.User.Mention} has offered to buy {amount} shares ({decimal.Round((decimal)Company.sharesToPercentage(s.amount) * 100, 4)}% ownership) of {c.name} for ${price}! Do you accept? (yes/no)");
         }
 
         [Command("buy-stock %")]
@@ -1678,7 +1682,7 @@ namespace EconomyBot.Modules
         [Summary("Buy a percentage of a company from another person.")]
         public async Task buyStockPerc(SocketUser seller, ulong company_id, double price, double percentage)
         {
-            sellStock(seller, company_id, price, Company.percentageToShares(percentage / 100));
+            buyStock(seller, company_id, price, Company.percentageToShares(percentage / 100));
         }
 
         [Command("stock-graph")]
