@@ -1754,6 +1754,7 @@ namespace EconomyBot.Modules
         }
 
         [Command("typoe-bounty")]
+        [Alias("typo-bounty")] //so I dont go insane
         [Summary("Funny reward for finding bugs in the bot; rewards $100")]
         public async Task typoBounty(SocketUser user)
         {
