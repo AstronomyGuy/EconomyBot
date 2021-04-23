@@ -90,11 +90,7 @@ namespace EconomyBot.Modules
             c.productStock.Add("nothing", 0);
             c.addEmployee(Context.User.Id, self_wage);
             Individual i = CoreClass.economy.getUser(Context.User.Id);
-            i.ownedStock.Add(new Stock() { 
-                owner = Context.User.Id,
-                companyBought = c.ID,
-                amount = Company.SHARES_PER_COMPANY
-            });
+            i.ownedStock.Add(new Stock(Context.User.Id, c.ID, Company.SHARES_PER_COMPANY));
             i.joinCompany(c.ID);
             CoreClass.economy.addCompany(c);
             CoreClass.economy.updateUser(i);
@@ -1674,7 +1670,7 @@ namespace EconomyBot.Modules
 
             m.ResponseReceived += handleEventAsync;
             CoreClass.responseThreads.Add(m);
-            Context.Channel.SendMessageAsync($"{Context.User.Mention} has offered to buy {amount} shares ({decimal.Round((decimal)Company.sharesToPercentage(s.amount) * 100, 4)}% ownership) of {c.name} for ${price}! Do you accept? (yes/no)");
+            Context.Channel.SendMessageAsync($"{Context.User.Mention} has offered to buy {amount} shares ({decimal.Round((decimal)Company.sharesToPercentage(amount) * 100, 4)}% ownership) of {c.name} for ${price}! Do you accept? (yes/no)");
         }
 
         [Command("buy-stock %")]

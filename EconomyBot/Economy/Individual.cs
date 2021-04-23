@@ -50,12 +50,7 @@ namespace EconomyBot.Economy
                 }
             }
             else {
-                Stock stock = new Stock
-                {
-                    companyBought = companyID,
-                    owner = this.ID,
-                    amount = amount
-                };
+                Stock stock = new Stock(this.ID, companyID, amount);
                 ownedStock.Add(stock);
             }
         }
