@@ -1743,7 +1743,35 @@ namespace EconomyBot.Modules
                 await Context.Channel.SendMessageAsync("There was an error generating this graph. I've DMed byte the details, so he'll be on that when Birnam Wood moves.");
 
             }
-        }        
+        }
+
+        [Command("bug-bounty")]
+        [Summary("Funny reward for finding bugs in the bot; rewards $500")]
+        public async Task bugBounty(SocketUser user) {
+            if (Context.User.Id != 374280713387900938) {
+                Context.Channel.SendMessageAsync("Sounds socialist, we dont do that here");
+            }
+            Individual i = CoreClass.economy.getUser(user.Id);
+            i.balance += 500;
+            CoreClass.economy.updateUser(i);
+            Context.Channel.SendMessageAsync($"{user.Username} has been rewarded for his service. Take that Obama.");
+        }
+
+        [Command("typoe-bounty")]
+        [Summary("Funny reward for finding bugs in the bot; rewards $100")]
+        public async Task typoBounty(SocketUser user)
+        {
+            if (Context.User.Id != 374280713387900938)
+            {
+                Context.Channel.SendMessageAsync("Sounds socialist, we dont do that here");
+            }
+            Individual i = CoreClass.economy.getUser(user.Id);
+            i.balance += 100;
+            CoreClass.economy.updateUser(i);
+            Context.Channel.SendMessageAsync($"{user.Username} has been rewarded for his service. Take that Obama.");
+        }
+
+
         #region The Funnies
         [Command("Alright funny guy, you think you're some sorta comedian? A humorous person, perhaps? You think you're funny?")]
         [Summary("Yugoslavia")]
