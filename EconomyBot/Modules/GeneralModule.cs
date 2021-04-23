@@ -1475,7 +1475,7 @@ namespace EconomyBot.Modules
             EmbedFieldBuilder currentTime = new EmbedFieldBuilder();
             currentTime.Name = "Current Time";
             //IRP Inauguration Date
-            DateTime start = new DateTime(2040, 1, 20);
+            DateTime start = new DateTime(2041, 1, 20);
             //IRL Inauguration Date
             DateTime inauguration = new DateTime(2021, 4, 22);
             TimeSpan timeSince = DateTime.Now.Subtract(inauguration);
@@ -1488,7 +1488,7 @@ namespace EconomyBot.Modules
             EmbedFieldBuilder timeToGeneral = new EmbedFieldBuilder();
             timeToGeneral.Name = "Time until General election";
             //Time of election
-            DateTime GEtime = new DateTime(start.Year + 4, 11, 3);            
+            DateTime GEtime = new DateTime(start.Year + 3, 11, 3);            
             //Time until election
             TimeSpan irpTimeToGE = GEtime.Subtract(end);
             //Display the funny numbers
@@ -1502,7 +1502,7 @@ namespace EconomyBot.Modules
             EmbedFieldBuilder timeToMidterm = new EmbedFieldBuilder();
             timeToMidterm.Name = "Time until Midterm election";
             //Time of Midterm election
-            DateTime Midtime = new DateTime(start.Year + 2, 11, 6);
+            DateTime Midtime = new DateTime(start.Year + 1, 11, 6);
             //Time to midterm
             TimeSpan irpTimeToMid = Midtime.Subtract(end);
             double irlDaysToMid = inauguration.AddDays(14).Subtract(DateTime.Now).TotalDays;
