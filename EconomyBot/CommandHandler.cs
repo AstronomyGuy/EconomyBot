@@ -66,7 +66,7 @@ namespace EconomyBot
             {
                 return;
             }
-            else if (CoreClass.debug) {
+            else if (CoreClass.debug && !GeneralModule.BOT_DEVS.Contains(message.Author.Id)) {
                 await message.Channel.SendMessageAsync("Debug mode is currently on. If byte isn't actively working on the bot, he probably forgot to turn it off.");
                 return;
             }

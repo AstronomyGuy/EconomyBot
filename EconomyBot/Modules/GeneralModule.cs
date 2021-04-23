@@ -1238,10 +1238,13 @@ namespace EconomyBot.Modules
                 Context.Channel.SendMessageAsync($"{Context.User.Mention} has offered to merge with {c1.name}, currently owned by <@{c1.orgOwner}>! Do you accept? (yes/no)");
             }
         }
+
+        public static readonly List<ulong> BOT_DEVS = new List<ulong>() { 374280713387900938, 388056125221896192, 238368508562505729, 210582854009225216 };
+
         [Command("toggle-debug")]
-        [Summary("For byte only. Disables the bot for all other users while active.")]
+        [Summary("For devs only. Disables the bot for all other users while active.")]
         public async Task debugToggle() {
-            if (Context.User.Id != 374280713387900938) {
+            if (!BOT_DEVS.Contains(Context.User.Id)) {
                 await Context.Channel.SendMessageAsync("No.");
             }
             CoreClass.debug = !CoreClass.debug;
@@ -1320,9 +1323,9 @@ namespace EconomyBot.Modules
                 $"**Total Employee Wages:** ${company.employeeWages.Values.Sum()}\n" +
                 $"**Balance:** ${company.balance}\n\n" +
                 $"**Popularity:** {company.popularity}\n" +
-                $"**Total Stock:** {company.productStock.Select(t => t.Value).Sum()}\n" +
-                $"**Stock Price:** {company.stock_price}";
-            embed.AddField(com);  
+                $"**Total Product Stock:** {company.productStock.Select(t => t.Value).Sum()}\n" +
+                $"**Share Price:** {company.stock_price}";
+            embed.AddField(com);              
             
             embed.WithTitle($"{company.name} Dashboard");
             embed.Color = Color.Blue;
@@ -1458,6 +1461,7 @@ namespace EconomyBot.Modules
                 await Context.Channel.SendMessageAsync($"Set {worker.Mention}'s wage to {newWage}!");
             }
         }
+                
         [Command("irp-time")]
         [Summary("Gives the time in the government roleplay")]
         public async Task irpTime() {
