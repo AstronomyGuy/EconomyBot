@@ -27,7 +27,7 @@ namespace EconomyBot.Economy
         public Dictionary<string, int> productStock = new Dictionary<string, int>();
 
         //Literally just the most recent price it was sold for
-        //God I can't believe this is a real-life tihng
+        //God I can't believe this is a real-life thing
         public double stock_price = 0;
         //For making the funny stock graph
         public List<double> stock_history = new List<double>();
