@@ -1746,6 +1746,7 @@ namespace EconomyBot.Modules
         public async Task bugBounty(SocketUser user) {
             if (Context.User.Id != 374280713387900938) {
                 Context.Channel.SendMessageAsync("Sounds socialist, we dont do that here");
+                return;
             }
             Individual i = CoreClass.economy.getUser(user.Id);
             i.balance += 500;
@@ -1761,6 +1762,7 @@ namespace EconomyBot.Modules
             if (Context.User.Id != 374280713387900938)
             {
                 Context.Channel.SendMessageAsync("Sounds socialist, we dont do that here");
+                return;
             }
             Individual i = CoreClass.economy.getUser(user.Id);
             i.balance += 100;
