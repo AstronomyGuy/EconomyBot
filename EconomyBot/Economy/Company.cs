@@ -157,10 +157,10 @@ namespace EconomyBot.Economy
             pos *= popularityToModifier(popularity);
             
             double[] output = new double[4];
-            output[0] = (pos * 0.5) - getDividendCost(pos * 0.5); //Worst case
-            output[1] = (pos * 1) - getDividendCost(pos * 1); //Unpog
-            output[2] = (pos * 1.23) - getDividendCost(pos * 1.23); //Average
-            output[3] = (pos * 2) - getDividendCost(pos * 2); //Best Case
+            output[0] = (pos * 0.5) - getDividendCost(pos * 0.5, false); //Worst case
+            output[1] = (pos * 1) - getDividendCost(pos * 1, false); //Unpog
+            output[2] = (pos * 1.23) - getDividendCost(pos * 1.23, false); //Average
+            output[3] = (pos * 2) - getDividendCost(pos * 2, false); //Best Case
             return output;
         }
         /// <summary>
@@ -173,8 +173,13 @@ namespace EconomyBot.Economy
             output += Math.Pow(Math.E, -((pop - 50) / 25));
             return 1 / output;
         }
-
-        private double getDividendCost(double grossProfit) {
+        /// <summary>
+        /// Get the cost of stock dividends
+        /// </summary>
+        /// <param name="grossProfit">The company's profit before dividends</param>
+        /// <param name="distribute">Whether or not dividend money should be distributed while totaling the cost</param>
+        /// <returns>The total amount of money given in dividends</returns>
+        private double getDividendCost(double grossProfit, bool distribute) {
             double totalDividendCost = 0;
             foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID)).ToList())
             {
@@ -188,9 +193,11 @@ namespace EconomyBot.Economy
                     Stock s = i.ownedStock.Find(s => s.companyBought == this.ID);
                     double dividend = grossProfit * sharesToPercentage(s.amount);
                     totalDividendCost += dividend;
-                    //Stock stuff goes directly to bank
-                    i.balance += dividend;
-                    CoreClass.economy.updateUser(i);
+                    if (distribute) {
+                        //Stock stuff goes directly to bank
+                        i.balance += dividend;
+                        CoreClass.economy.updateUser(i);
+                    }
                 }
             }
             return totalDividendCost;
@@ -212,7 +219,7 @@ namespace EconomyBot.Economy
             }
 
             //Dividends
-            output -= getDividendCost(output);
+            output -= getDividendCost(output, true);
 
             //Update popularity
             if (astroturfs < 1)
