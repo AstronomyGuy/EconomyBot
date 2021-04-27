@@ -859,9 +859,9 @@ namespace EconomyBot.Modules
                 double[] projection = c.getIncomeProjection();
                 await Context.Channel.SendMessageAsync($"**Profit projections for {c.name}:**\n" +
                     $">>> Worst-case change: {Math.Round(projection[0], 2)}\n" +
-                    $"Low-end income:    {Math.Round(projection[1], 2)}\n" +
-                    $"Expected income:   {Math.Round(projection[2], 2)}\n" +
-                    $"Best-case income:  {Math.Round(projection[3], 2)}");
+                    $"Low-end income:     {Math.Round(projection[1], 2)}\n" +
+                    $"Expected income:    {Math.Round(projection[2], 2)}\n" +
+                    $"Best-case income:   {Math.Round(projection[3], 2)}");
                 await Context.Channel.SendMessageAsync("You can increase these figures by getting your employees to work or by advertising.");
             }
         }
