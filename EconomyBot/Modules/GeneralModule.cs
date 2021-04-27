@@ -840,6 +840,9 @@ namespace EconomyBot.Modules
             try
             {
                 c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
+                if (Context.User.Id == 374280713387900938) {
+                    c = CoreClass.economy.getCompany(c => c.ID == company_id);
+                }
             }
             catch (Exception e)
             {
@@ -1338,7 +1341,7 @@ namespace EconomyBot.Modules
             EmbedBuilder embed = new EmbedBuilder();
 
             EmbedFieldBuilder user = new EmbedFieldBuilder();
-            Individual i = CoreClass.economy.getUser(Context.User.Id);
+            Individual i = CoreClass.economy.getUser(Context.User.Id, false);
             user.Name = "Balance";
             user.Value = $"**ID:** `{Context.User.Id}`\n**Balance:** ${i.balance} (Bank), ${i.cashBalance} (Cash)\n";
             embed.AddField(user);
@@ -1359,6 +1362,7 @@ namespace EconomyBot.Modules
                     }
                     val += $"{c.name} (ID: {c.ID}) | {s.amount} shares, {decimal.Round((decimal)Company.sharesToPercentage(s.amount) * 100, 4)}% ownership\n";
                 }
+                stockField.Value = val;
             }
             else {
                 stockField.Value = "You don't have a share of any company currently.";

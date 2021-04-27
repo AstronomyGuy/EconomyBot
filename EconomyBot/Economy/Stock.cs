@@ -38,11 +38,10 @@ namespace EconomyBot.Economy
             if (!CoreClass.economy.companies.Exists(c => c.ID == companyBought)) {
                 return sellResult.ERROR_INVALID_COMPANY;
             }
-            //Check if owner exists before a new owner object is made
-            if (!CoreClass.economy.citizens.Exists(c => c.ID == owner)) {
+            Individual seller = CoreClass.economy.getUser(owner, false);
+            if (seller == null) {
                 return sellResult.ERROR_INVALID_OWNER;
             }
-            Individual seller = CoreClass.economy.getUser(owner);
             Individual iBuyer = CoreClass.economy.getUser(buyer);
             Company c = CoreClass.economy.getCompany(ci => ci.ID == companyBought);
 
@@ -54,8 +53,8 @@ namespace EconomyBot.Economy
             seller.balance += price;
             iBuyer.balance -= price;
 
-            iBuyer.addStock(companyBought, amount);
-            seller.addStock(companyBought, -1 * amount);
+            iBuyer.addStock(companyBought, amountBuying);
+            seller.addStock(companyBought, -1 * amountBuying);
 
             c.stock_price = price / amountBuying;
             c.updateOwner();

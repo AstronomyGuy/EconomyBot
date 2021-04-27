@@ -42,7 +42,7 @@ namespace EconomyBot.Economy
             {
                 Stock stock = ownedStock.Find(s => s.companyBought == companyID);
                 //Don't need to check for negative because that's already handled
-                stock.amount -= amount;
+                stock.amount += amount;
                 ownedStock.RemoveAll(s => s.companyBought == companyID);
                 //Don't re-add if the stock amount is 0, saves space
                 if (stock.amount != 0) {

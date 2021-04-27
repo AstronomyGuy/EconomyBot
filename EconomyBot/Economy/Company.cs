@@ -155,28 +155,12 @@ namespace EconomyBot.Economy
             //productStock.Select(t => t.Value * products[t.Key]).Sum();
             double pos = productStock.Select(t => t.Value * products[t.Key]).Sum();
             pos *= popularityToModifier(popularity);
-
-            double percentToDividend = 0;
-            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID)))
-            {
-                if (i.ID == orgOwner)
-                {
-                    //Profits that would normally go to owner stay in the company
-                    continue;
-                }
-                else
-                {
-                    Stock s = i.ownedStock.Find(s => s.companyBought == this.ID);
-                    percentToDividend += sharesToPercentage(s.amount);
-                }
-            }
-            pos *= 1 - percentToDividend;
-
+            
             double[] output = new double[4];
-            output[0] = pos * 0.5; //Worst case
-            output[1] = pos * 1; //Unpog
-            output[2] = pos * 1.23; //Average
-            output[3] = pos * 2; //Best Case
+            output[0] = (pos * 0.5) - getDividendCost(pos * 0.5); //Worst case
+            output[1] = (pos * 1) - getDividendCost(pos * 1); //Unpog
+            output[2] = (pos * 1.23) - getDividendCost(pos * 1.23); //Average
+            output[3] = (pos * 2) - getDividendCost(pos * 2); //Best Case
             return output;
         }
         /// <summary>
@@ -189,6 +173,29 @@ namespace EconomyBot.Economy
             output += Math.Pow(Math.E, -((pop - 50) / 25));
             return 1 / output;
         }
+
+        private double getDividendCost(double grossProfit) {
+            double totalDividendCost = 0;
+            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID)).ToList())
+            {
+                if (i.ID == orgOwner)
+                {
+                    //Profits that would normally go to owner stay in the company
+                    continue;
+                }
+                else
+                {
+                    Stock s = i.ownedStock.Find(s => s.companyBought == this.ID);
+                    double dividend = grossProfit * sharesToPercentage(s.amount);
+                    totalDividendCost += dividend;
+                    //Stock stuff goes directly to bank
+                    i.balance += dividend;
+                    CoreClass.economy.updateUser(i);
+                }
+            }
+            return totalDividendCost;
+        }
+
         /// <summary>
         /// Calculates the income of this company, updates popularity based on astroturfs, and removes sold stock
         /// </summary>
@@ -205,23 +212,7 @@ namespace EconomyBot.Economy
             }
 
             //Dividends
-            double totalDividendCost = 0;
-            foreach (Individual i in CoreClass.economy.citizens.Where(i => i.ownedStock.Exists(s => s.companyBought == this.ID)).ToList()) {
-                if (i.ID == orgOwner)
-                {
-                    //Profits that would normally go to owner stay in the company
-                    continue;
-                }
-                else {
-                    Stock s = i.ownedStock.Find(s => s.companyBought == this.ID);
-                    double dividend = output * sharesToPercentage(s.amount);
-                    totalDividendCost += dividend;
-                    //Stock stuff goes directly to bank
-                    i.balance += dividend;
-                    CoreClass.economy.updateUser(i);
-                }
-            }
-            output -= totalDividendCost;
+            output -= getDividendCost(output);
 
             //Update popularity
             if (astroturfs < 1)

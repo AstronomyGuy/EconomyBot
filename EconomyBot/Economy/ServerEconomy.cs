@@ -124,20 +124,26 @@ namespace EconomyBot.Economy
         /// </summary>
         /// <param name="id">ID of the user to look for</param>
         /// <returns>an Individual with the specified id</returns>
-        internal Individual getUser(ulong id)
+        internal Individual getUser(ulong id, bool create = true)
         {
-            if (citizens.Exists(i => i.ID == id))
+            if (citizens.Exists(i => i.ID.Equals(id)))
             {
-                return citizens.Find(i => i.ID == id);
+                return citizens.Find(i => i.ID.Equals(id));
             }
             else {
-                Individual i = new Individual()
+                if (create)
                 {
-                    ID = id,
-                    creationTime = DateTime.Now
-                };
-                citizens.Add(i);
-                return i;
+                    Individual i = new Individual()
+                    {
+                        ID = id,
+                        creationTime = DateTime.Now
+                    };
+                    citizens.Add(i);
+                    return i;
+                }
+                else {
+                    return null;
+                }
             }
         }
 
