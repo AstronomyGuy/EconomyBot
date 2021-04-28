@@ -1881,8 +1881,7 @@ namespace EconomyBot.Modules
                     return;
                 }
                 c.balance -= 1000;
-                c.employeeProduce.Add(0, product);
-                c.employeeWages.Add(0, 0);
+                c.automation.Add(product);
                 CoreClass.economy.updateCompany(c);
                 await Context.Channel.SendMessageAsync($"Bought a {product} factory.");
             }

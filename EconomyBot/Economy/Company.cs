@@ -25,7 +25,7 @@ namespace EconomyBot.Economy
         [BsonDictionaryOptions(Representation = DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<string, int> productStock = new Dictionary<string, int>();
 
-        List<string> automation = new List<string>();        
+        public List<string> automation = new List<string>();        
 
         //Literally just the most recent price it was sold for
         //God I can't believe this is a real-life thing
