@@ -26,14 +26,11 @@ namespace EconomyBot.Modules
         [Summary("Gives the change log for the more recent update")]
         public async Task changelog() {
             EmbedBuilder eb = new EmbedBuilder();
-            eb.WithTitle("Changelog | Version 1.6 Hotfix 4");
-            eb.WithDescription(" - introduced stocks\n" +
-                " - buffed profits\n" +
-                " - added $next-turn\n" +
-                " - fixed a bunch of bugs ~~which I though I already fixed but apparently not~~\n" +
-                " - You can no longer pay people $NaN and freeze them\n" +
-                " - made the status message use $help instead of !help\n" +
-                " - added more dashboards");
+            eb.WithTitle("Changelog | Version 1.7");
+            eb.WithDescription(" - added automation with `$buy factory <company> <product>`\n" +
+                " - Made it so that business owners can change what their employees produce with $set-product\n" +
+                "    - This means that business owners can set their own products, and produce product for their own company\n" +
+                " - Added $employees");
             eb.WithFooter("Updates come out slowly, sorry if you're waiting on an update that hasn't come out yet");
             await Context.Channel.SendMessageAsync(embed: eb.Build());
         }

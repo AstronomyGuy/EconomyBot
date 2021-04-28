@@ -19,12 +19,13 @@ namespace EconomyBot.Economy
         [BsonDictionaryOptions(Representation = DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<ulong, string> employeeProduce = new Dictionary<ulong, string>();
        
-
         [BsonDictionaryOptions(Representation = DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<string, double> products = new Dictionary<string, double>();
         //Certain employees produce cetrain products
         [BsonDictionaryOptions(Representation = DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<string, int> productStock = new Dictionary<string, int>();
+
+        List<string> automation = new List<string>();        
 
         //Literally just the most recent price it was sold for
         //God I can't believe this is a real-life thing
@@ -226,6 +227,17 @@ namespace EconomyBot.Economy
 
             //Update stock history
             stock_history.Add(stock_price);
+
+            foreach (string p in automation) {
+                if (productStock.ContainsKey(p))
+                {
+                    productStock[p]++;
+                }
+                else {
+                    //Remove discontinued/errored products
+                    automation.Remove(p);
+                }
+            }
 
             //Update owner
             updateOwner();
