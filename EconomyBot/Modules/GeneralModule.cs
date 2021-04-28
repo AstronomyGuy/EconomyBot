@@ -204,7 +204,7 @@ namespace EconomyBot.Modules
             }
             else
             {
-                MessageResponseThread m = new MessageResponseThread(Context.User.Id, Context.Channel.Id, new Regex("(yes|nope|yep|no|y|n)", RegexOptions.IgnoreCase));
+                MessageResponseThread m = new MessageResponseThread(user.Id, Context.Channel.Id, new Regex("(yes|nope|yep|no|y|n)", RegexOptions.IgnoreCase));
 
                 async void handleEventAsync(object sender, EventArgs e)
                 {
@@ -224,7 +224,7 @@ namespace EconomyBot.Modules
                     }
                     else
                     {
-                        Context.Channel.SendMessageAsync($"{Context.User.Mention} has refused to join {c.name}, sorry {Context.User.Mention}...");
+                        Context.Channel.SendMessageAsync($"{Context.User.Mention} was denied a job at {c.name}, sorry {Context.User.Mention}...");
                     }
                 }
 
@@ -1037,24 +1037,42 @@ namespace EconomyBot.Modules
         }
         [Command("buyable")]
         [Summary("Get a list of products you can buy and their prices")]
-        public async Task buyables() {
+        public async Task buyables(int page = 1) {
 
             Dictionary<string, double> individualBuyable = new Individual().getBuyable();
             Dictionary<string, double> companyBuyable = new Company().getBuyable();
             //individualBuyable.Select(kv => $"{kv.Key} | ${kv.Value}");
             EmbedBuilder eb = new EmbedBuilder();
             string ind = "";
-            string com = "";
-            for (int i = 0; i < individualBuyable.Count(); i++) { 
+            int overloads = page - 1;
+            for (int i = 0; i < individualBuyable.Count(); i++) {
+                if ((ind + $"{individualBuyable.ElementAt(i).Key} | ${individualBuyable.ElementAt(i).Value}\n").Length >= 1024) {
+                    //Overload
+                    if (overloads > 0)
+                    {
+                        overloads--;
+                        ind = "";
+                    }
+                    else {
+                        break;
+                    }
+                }
+
                 ind += $"{individualBuyable.ElementAt(i).Key} | ${individualBuyable.ElementAt(i).Value}\n";
             }
-            for (int i = 0; i < companyBuyable.Count(); i++)
-            {
-                com += $"{companyBuyable.ElementAt(i).Key} | ${companyBuyable.ElementAt(i).Value}\n";
-            }
+            
             eb.WithTitle($"Available products and prices:");
             eb.AddField("Individual's Products (-i)", ind);
-            eb.AddField("Company Products (-c)", com);
+
+            if (page == 1) {
+                string com = "";
+                for (int i = 0; i < companyBuyable.Count(); i++)
+                {
+                    com += $"{companyBuyable.ElementAt(i).Key} | ${companyBuyable.ElementAt(i).Value}\n";
+                }
+                eb.AddField("Company Products (-c)", com);
+            }
+
             eb.WithFooter($"Buy these products with `{CoreClass.DEFAULT_PREFIX}buy-i <product name>` or `{CoreClass.DEFAULT_PREFIX}buy-c <product name>` for individuals and companies respectively.");
             eb.WithColor(Color.Blue);
             await Context.Channel.SendMessageAsync(embed: eb.Build());
@@ -1465,7 +1483,40 @@ namespace EconomyBot.Modules
                 await Context.Channel.SendMessageAsync($"Set {worker.Mention}'s wage to {newWage}!");
             }
         }
-                
+
+        [Command("set-product")]
+        [Summary("Set the product that one of your workers produces")]
+        public async Task setProduct(ulong company_id, SocketUser worker, string newProduct)
+        {
+            Individual hirer = CoreClass.economy.getUser(Context.User.Id);
+            Company c;
+            try
+            {
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.SendMessageAsync("There was a problem finding your Company. If you don't *own* a Company, that would be why.");
+                return;
+            }
+            if (c == null)
+            {
+                await Context.Channel.SendMessageAsync("You need a company before you can change people's products!");
+                return;
+            }
+            else
+            {
+                if (!c.employeeWages.ContainsKey(worker.Id))
+                {
+                    await Context.Channel.SendMessageAsync("That person doesn't work at your company.");
+                    return;
+                }
+                c.employeeProduce[worker.Id] = newProduct;
+                CoreClass.economy.updateCompany(c);
+                Context.Channel.SendMessageAsync($"{worker.Username} will now produce {newProduct}.");
+            }
+        }
+
         [Command("irp-time")]
         [Summary("Gives the time in the government roleplay")]
         public async Task irpTime() {
@@ -1778,7 +1829,64 @@ namespace EconomyBot.Modules
             Context.Channel.SendMessageAsync($"{user.Username} has been rewarded for his service. Take that Obama.");
         }
 
+        [Command("employees")]
+        [Alias("employee-list")]
+        public async Task employeeList(ulong company_id) {
+            Company c = CoreClass.economy.getCompany(company_id);
+            if (c == null) {
+                Context.Channel.SendMessageAsync("Company not found.");
+                return;
+            }
+            EmbedBuilder eb = new EmbedBuilder();
+            EmbedFieldBuilder ef = new EmbedFieldBuilder();
+            ef.Name = $"Employees of {c.name}";
+            string val = "";
+            foreach (ulong user in c.employeeProduce.Keys.ToList())
+            {
+                SocketUser sU = Context.Client.GetUser(user);
+                if (sU == null) { continue; }
+                val += $"{sU.Mention} | ${c.employeeWages[user]} per {c.employeeProduce[user]}\n";
+            }
+            if (val == "") {
+                val = "[No employees found]";
+            }
+            ef.Value = val;
+            eb.AddField(ef);
+            Context.Channel.SendMessageAsync(embed: eb.Build());
+        }
 
+        [Command("buy factory")]
+        [Summary("Buy a factory of some product, that produces 1 of some product per turn")]
+        public async Task buyFactory(ulong company_id, string product) {
+            Company c;
+            try
+            {
+                c = CoreClass.economy.getCompany(c => c.ID == company_id && c.orgOwner == Context.User.Id);
+            }
+            catch (Exception e)
+            {
+                await Context.Channel.SendMessageAsync("There was a problem finding your Company. If you don't *own* a Company, that would be why.");
+                return;
+            }
+            if (c == null)
+            {
+                await Context.Channel.SendMessageAsync("You need a company before you can buy a factory!");
+                return;
+            }
+            else
+            {
+                if (c.balance < 1000)
+                {
+                    await Context.Channel.SendMessageAsync($"Your company doesn't have enough money for a {product} factory.");
+                    return;
+                }
+                c.balance -= 1000;
+                c.employeeProduce.Add(0, product);
+                c.employeeWages.Add(0, 0);
+                CoreClass.economy.updateCompany(c);
+                await Context.Channel.SendMessageAsync($"Bought a {product} factory.");
+            }
+        }
         #region The Funnies
         [Command("Alright funny guy, you think you're some sorta comedian? A humorous person, perhaps? You think you're funny?")]
         [Summary("Yugoslavia")]
