@@ -241,8 +241,9 @@ namespace EconomyBot.Economy
                     productStock[p]++;
                 }
                 else {
-                    //Remove discontinued/errored products
-                    automation.Remove(p);
+                    //Remove discontinued/errored products                    
+                    //automation.Remove(p);
+                    //Never mind, it doesn't like when you delete stuff in its own foreach loop
                 }
             }
 
