@@ -48,19 +48,24 @@ namespace EconomyBot
         }
 
         public static DateTime nextUpdate;
-
+        public static int updates = 0;
         public static void updateLoop() {
             nextUpdate = DateTime.Now.AddHours(2);
             Thread.Sleep(10000);
             while (true) {
                 if (economy == null) {
                     continue;
+                }           
+                
+                if (updates % 4 == 0) {
+                    economy.updateAll();
+                    nextUpdate = DateTime.Now.AddHours(2);
                 }
-                economy.updateAll();
+
                 MongoUtil.updateEcon(CoreClass.economy);
-                nextUpdate = DateTime.Now.AddHours(2);
-                Thread.Sleep(1000 * 60 * 60 * 2);
-                //Wait 2 hours
+                updates++;
+                //Wait 30 mins
+                Thread.Sleep(1000 * 60 * 30);                
             }
         }
 
